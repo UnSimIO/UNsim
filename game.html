@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UN Simulator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f4f9;
+      color: #333;
+    }
+    h1 {
+      color: #0056b3;
+    }
+    .stats {
+      margin-bottom: 20px;
+      padding: 10px;
+      background-color: #e8f0fe;
+      border: 1px solid #b0c4de;
+      border-radius: 5px;
+    }
+    .stats p {
+      margin: 5px 0;
+    }
+    .event {
+      margin-bottom: 20px;
+    }
+    .choices button {
+      margin: 5px;
+      padding: 10px;
+      background-color: #0056b3;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .choices button:hover {
+      background-color: #003d80;
+    }
+    .choices button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    #next-event {
+      padding: 10px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #next-event:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+  <h1>UN Simulator</h1>
+  <div class="stats">
+    <p><strong>Funds:</strong> <span id="funds">100</span></p>
+    <p><strong>Influence:</strong> <span id="influence">50</span></p>
+    <p><strong>Morale:</strong> <span id="morale">75</span></p>
+    <p><strong>Turns:</strong> <span id="turns">0</span></p>
+  </div>
+  <div class="event">
+    <p id="event-description">Welcome to the UN Simulator! Click "Next Event" to begin.</p>
+  </div>
+  <div class="choices">
+    <button id="choice-a" style="display: none;">Choice A</button>
+    <button id="choice-b" style="display: none;">Choice B</button>
+    <button id="choice-c" style="display: none;">Choice C</button>
+  </div>
+  <button id="next-event">Next Event</button>
+  <script>
+    const resources = {
+      funds: 100,
+      influence: 50,
+      morale: 75,
+    };
+
+    let turns = 0;
+
+    const events = [
+      {
+        description: "A natural disaster has struck a member nation. They request financial aid.",
+        choices: {
+          A: { text: "Provide $20M in aid", effects: { funds: -20, morale: 10 } },
+          B: { text: "Decline and encourage local fundraising", effects: { influence: -5, morale: -10 } },
+        },
+      },
+      {
+        description: "A pandemic has emerged. How will you respond?",
+        choices: {
+          A: { text: "Fund vaccine research ($30M)", effects: { funds: -30, morale: 15 } },
+          B: { text: "Launch awareness campaigns", effects: { influence: -10, morale: 10 } },
+          C: { text: "Do nothing", effects: { morale: -20 } },
+        },
+      },
+      {
+        description: "A member state violated human rights. How will you act?",
+        choices: {
+          A: { text: "Sanction the nation", effects: { influence: -15, morale: 5 } },
+          B: { text: "Issue a public statement", effects: { influence: -5 } },
+          C: { text: "Ignore the issue", effects: { morale: -10 } },
+        },
+      },
+    ];
+
+    const elements = {
+      funds: document.getElementById('funds'),
+      influence: document.getElementById('influence'),
+      morale: document.getElementById('morale'),
+      turns: document.getElementById('turns'),
+      eventDescription: document.getElementById('event-description'),
+      choices: {
+        A: document.getElementById('choice-a'),
+        B: document.getElementById('choice-b'),
+        C: document.getElementById('choice-c'),
+      },
+      nextEvent: document.getElementById('next-event'),
+    };
+
+    function updateStats() {
+      elements.funds.textContent = resources.funds;
+      elements.influence.textContent = resources.influence;
+      elements.morale.textContent = resources.morale;
+      elements.turns.textContent = turns;
+    }
+
+    function endGame(message) {
+      elements.eventDescription.textContent = message;
+      elements.nextEvent.style.display = 'none';
+      Object.values(elements.choices).forEach(button => button.style.display = 'none');
+    }
+
+    function handleChoice(event, userChoice) {
+      const choice = event.choices[userChoice];
+      for (const [key, value] of Object.entries(choice.effects)) {
+        resources[key] += value;
+      }
+      turns += 1;
+      updateStats();
+
+      if (resources.funds <= 0) {
+        endGame("You have run out of funds. Game Over!");
+      } else if (resources.influence <= 0) {
+        endGame("You have lost all influence. Game Over!");
+      } else if (resources.morale <= 0) {
+        endGame("Global morale has collapsed. Game Over!");
+      } else {
+        elements.nextEvent.style.display = 'inline-block';
+        Object.values(elements.choices).forEach(button => button.style.display = 'none');
+      }
+    }
+
+    function showEvent(event) {
+      elements.eventDescription.textContent = event.description;
+      Object.keys(event.choices).forEach(key => {
+        const button = elements.choices[key];
+        button.textContent = event.choices[key].text;
+        button.style.display = 'inline-block';
+        button.onclick = () => handleChoice(event, key);
+      });
+    }
+
+    elements.nextEvent.onclick = () => {
+      const event = events[Math.floor(Math.random() * events.length)];
+      showEvent(event);
+      elements.nextEvent.style.display = 'none';
+    };
+
+    updateStats();
+  </script>
+</body>
+</html>
