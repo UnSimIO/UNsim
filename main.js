@@ -1,20 +1,166 @@
+// --- Elements ---
 const canvas = document.getElementById("game-canvas");
-const ctx = canvas.getContext("2d");
+const ctx = canvas ? canvas.getContext("2d") : null;
+
+const mainMenu = document.getElementById("main-menu");
+const loginMenu = document.getElementById("login-menu");
+const registerMenu = document.getElementById("register-menu");
+const gameUI = document.getElementById("game-ui");
+
+const menuLoginBtn = document.getElementById("menu-login-btn");
+const menuRegisterBtn = document.getElementById("menu-register-btn");
+const toRegisterBtn = document.getElementById("to-register-btn");
+const toLoginBtn = document.getElementById("to-login-btn");
+const backToMain1 = document.getElementById("back-to-main-1");
+const backToMain2 = document.getElementById("back-to-main-2");
+const backToMain3 = document.getElementById("back-to-main-3");
+
+const loginBtn = document.getElementById("login-btn");
+const registerBtn = document.getElementById("register-btn");
+const logoutBtn = document.getElementById("logout-btn");
+
+const loginUsername = document.getElementById("login-username");
+const loginPassword = document.getElementById("login-password");
+const registerUsername = document.getElementById("register-username");
+const registerPassword = document.getElementById("register-password");
+
+const loginError = document.getElementById("login-error");
+const registerError = document.getElementById("register-error");
+
+const greeting = document.getElementById("greeting");
 const betInput = document.getElementById("bet-amount");
 const dropXInput = document.getElementById("drop-x");
 const dropBtn = document.getElementById("drop-btn");
 const resultSpan = document.getElementById("result");
-const startGameBtn = document.getElementById("start-game-btn");
-const mainMenu = document.getElementById("main-menu");
-const ui = document.getElementById("ui");
-const backBtn = document.getElementById("back-btn");
-const loginMenu = document.getElementById("login-menu");
-const usernameInput = document.getElementById("username-input");
-const loginBtn = document.getElementById("login-btn");
 
-let username = null;
+// --- State ---
+let currentUser = null;
+const USER_KEY = "ballbet_users";
+const SESSION_KEY = "ballbet_session";
 
-// Game constants
+// --- UI Navigation ---
+function showMenu() {
+  hideAll();
+  mainMenu.style.display = "";
+}
+function showLogin() {
+  hideAll();
+  loginMenu.style.display = "";
+  loginUsername.value = "";
+  loginPassword.value = "";
+  loginError.textContent = "";
+}
+function showRegister() {
+  hideAll();
+  registerMenu.style.display = "";
+  registerUsername.value = "";
+  registerPassword.value = "";
+  registerError.textContent = "";
+}
+function showGameUI() {
+  hideAll();
+  gameUI.style.display = "";
+  greeting.textContent = `Hi, ${currentUser}!`;
+  resultSpan.textContent = "";
+  draw();
+}
+function hideAll() {
+  mainMenu.style.display = "none";
+  loginMenu.style.display = "none";
+  registerMenu.style.display = "none";
+  gameUI.style.display = "none";
+}
+
+// --- User Auth (Local Demo) ---
+function loadUsers() {
+  try {
+    return JSON.parse(localStorage.getItem(USER_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function saveUsers(users) {
+  localStorage.setItem(USER_KEY, JSON.stringify(users));
+}
+
+function saveSession(username) {
+  localStorage.setItem(SESSION_KEY, username);
+}
+function clearSession() {
+  localStorage.removeItem(SESSION_KEY);
+}
+
+function getSessionUser() {
+  return localStorage.getItem(SESSION_KEY) || null;
+}
+
+// --- Event Listeners (Navigation) ---
+menuLoginBtn.onclick = showLogin;
+menuRegisterBtn.onclick = showRegister;
+toRegisterBtn.onclick = showRegister;
+toLoginBtn.onclick = showLogin;
+backToMain1.onclick = showMenu;
+backToMain2.onclick = showMenu;
+backToMain3.onclick = () => {
+  ball = null;
+  gameActive = false;
+  showMenu();
+};
+logoutBtn.onclick = () => {
+  currentUser = null;
+  clearSession();
+  showMenu();
+};
+
+// --- Register ---
+registerBtn.onclick = () => {
+  let username = registerUsername.value.trim();
+  let password = registerPassword.value;
+  if (username.length < 3) {
+    registerError.textContent = "Username must be at least 3 characters.";
+    return;
+  }
+  if (password.length < 4) {
+    registerError.textContent = "Password must be at least 4 characters.";
+    return;
+  }
+  let users = loadUsers();
+  if (users[username]) {
+    registerError.textContent = "Username already exists.";
+    return;
+  }
+  users[username] = { password: password };
+  saveUsers(users);
+  registerError.textContent = "Registration successful! Please login.";
+  setTimeout(showLogin, 1200);
+};
+
+// --- Login ---
+loginBtn.onclick = () => {
+  let username = loginUsername.value.trim();
+  let password = loginPassword.value;
+  let users = loadUsers();
+  if (!users[username] || users[username].password !== password) {
+    loginError.textContent = "Invalid username or password.";
+    return;
+  }
+  currentUser = username;
+  saveSession(username);
+  showGameUI();
+};
+
+// --- Auto-login if session exists ---
+window.onload = () => {
+  currentUser = getSessionUser();
+  if (currentUser) {
+    showGameUI();
+  } else {
+    showMenu();
+  }
+};
+
+// --- Game Logic ---
 const GRAVITY = 0.32;
 const BALL_RADIUS = 16;
 const OBSTACLES = [
@@ -26,30 +172,6 @@ const GOAL_LINE = 760;
 let ball = null;
 let gameActive = false;
 
-function showLogin() {
-  loginMenu.style.display = "";
-  mainMenu.style.display = "none";
-  ui.style.display = "none";
-  canvas.style.display = "none";
-}
-
-function showMenu() {
-  loginMenu.style.display = "none";
-  mainMenu.style.display = "";
-  ui.style.display = "none";
-  canvas.style.display = "none";
-  resultSpan.textContent = "";
-  draw(); // To clear the canvas
-}
-
-function showGameUI() {
-  mainMenu.style.display = "none";
-  ui.style.display = "";
-  canvas.style.display = "";
-  resultSpan.textContent = "";
-  draw();
-}
-
 function startGame() {
   const dropX = parseInt(dropXInput.value);
   ball = {
@@ -60,7 +182,7 @@ function startGame() {
     color: getRandomColor()
   };
   gameActive = true;
-  resultSpan.textContent = `Ball dropped! Good luck, ${username || "Player"}!`;
+  resultSpan.textContent = `Ball dropped! Good luck, ${currentUser || "Player"}!`;
   animate();
 }
 
@@ -106,8 +228,10 @@ function update() {
 }
 
 function draw() {
+  if (!ctx) return;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // Goal line
   ctx.strokeStyle = "#0f0";
   ctx.lineWidth = 3;
   ctx.beginPath();
@@ -115,26 +239,34 @@ function draw() {
   ctx.lineTo(canvas.width, GOAL_LINE);
   ctx.stroke();
 
+  // Obstacles
   ctx.fillStyle = "#888";
   for (const ob of OBSTACLES) {
+    ctx.save();
+    ctx.shadowColor = "#222";
+    ctx.shadowBlur = 10;
     ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
+    ctx.restore();
   }
 
+  // Ball
   if (ball) {
+    ctx.save();
+    ctx.shadowColor = ball.color;
+    ctx.shadowBlur = 18;
     ctx.fillStyle = ball.color;
     ctx.beginPath();
     ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
     ctx.fill();
+    ctx.shadowBlur = 0;
     ctx.strokeStyle = "#fff";
     ctx.lineWidth = 2;
     ctx.stroke();
+    ctx.restore();
   }
 }
 
-function getRandomColor() {
-  return `hsl(${Math.floor(Math.random() * 360)}, 80%, 50%)`;
-}
-
+// --- Game UI Events ---
 dropBtn.onclick = () => {
   if (gameActive) {
     resultSpan.textContent = "Game in progress!";
@@ -143,33 +275,4 @@ dropBtn.onclick = () => {
   startGame();
 };
 
-backBtn.onclick = showMenu;
-
-startGameBtn.onclick = () => {
-  showGameUI();
-  ball = null;
-  gameActive = false;
-  draw();
-};
-
-loginBtn.onclick = () => {
-  username = usernameInput.value.trim();
-  if (username.length < 3) {
-    alert("Username must be at least 3 characters.");
-    return;
-  }
-  localStorage.setItem("ballbet_username", username);
-  showMenu();
-};
-
-window.onload = () => {
-  username = localStorage.getItem("ballbet_username");
-  if (username) {
-    showMenu();
-  } else {
-    showLogin();
-  }
-};
-
-// Start with login or menu
 draw();
