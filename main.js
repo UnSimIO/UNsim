@@ -4,6 +4,10 @@ const betInput = document.getElementById("bet-amount");
 const dropXInput = document.getElementById("drop-x");
 const dropBtn = document.getElementById("drop-btn");
 const resultSpan = document.getElementById("result");
+const startGameBtn = document.getElementById("start-game-btn");
+const mainMenu = document.getElementById("main-menu");
+const ui = document.getElementById("ui");
+const backBtn = document.getElementById("back-btn");
 
 // Game constants
 const GRAVITY = 0.32;
@@ -16,6 +20,22 @@ const GOAL_LINE = 760;
 
 let ball = null;
 let gameActive = false;
+
+function showMenu() {
+  mainMenu.style.display = "";
+  ui.style.display = "none";
+  canvas.style.display = "none";
+  resultSpan.textContent = "";
+  draw(); // To clear the canvas
+}
+
+function showGameUI() {
+  mainMenu.style.display = "none";
+  ui.style.display = "";
+  canvas.style.display = "";
+  resultSpan.textContent = "";
+  draw();
+}
 
 function startGame() {
   const dropX = parseInt(dropXInput.value);
@@ -121,5 +141,14 @@ dropBtn.onclick = () => {
   startGame();
 };
 
-// Initial draw
-draw();
+backBtn.onclick = showMenu;
+
+startGameBtn.onclick = () => {
+  showGameUI();
+  ball = null;
+  gameActive = false;
+  draw();
+};
+
+// Start with menu
+showMenu();
