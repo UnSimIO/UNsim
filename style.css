@@ -1,0 +1,20 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #20242b;
+  color: #fff;
+  text-align: center;
+  margin: 0;
+}
+#ui {
+  margin: 20px 0;
+}
+#game-canvas {
+  background: #111;
+  box-shadow: 0 0 10px #000;
+  border-radius: 8px;
+  display: block;
+  margin: 0 auto;
+}
+label, #result {
+  margin-right: 1em;
+}
