@@ -60,7 +60,7 @@ function showRegister() {
 function showGameUI() {
   hideAll();
   gameUI.style.display = "";
-  greeting.textContent = `Hi, ${currentUser}!`;
+  updateBalanceDisplay();
   resultSpan.textContent = "";
   draw();
 }
@@ -130,7 +130,7 @@ registerBtn.onclick = () => {
     registerError.textContent = "Username already exists.";
     return;
   }
-  users[username] = { password: password };
+  users[username] = { password: password, balance: 100 }; // Start with 100 tokens
   saveUsers(users);
   registerError.textContent = "Registration successful! Please login.";
   setTimeout(showLogin, 1200);
@@ -149,6 +149,13 @@ loginBtn.onclick = () => {
   saveSession(username);
   showGameUI();
 };
+
+// --- Update balance in UI ---
+function updateBalanceDisplay() {
+  let users = loadUsers();
+  let balance = users[currentUser] ? users[currentUser].balance : 0;
+  greeting.textContent = `Hi, ${currentUser}! Tokens: ${balance}`;
+}
 
 // --- Auto-login if session exists ---
 window.onload = () => {
@@ -171,8 +178,24 @@ const GOAL_LINE = 760;
 
 let ball = null;
 let gameActive = false;
+let currentBet = 0;
 
 function startGame() {
+  let users = loadUsers();
+  let balance = users[currentUser] ? users[currentUser].balance : 0;
+  const bet = parseInt(betInput.value);
+  if (bet > balance) {
+    resultSpan.textContent = "Not enough tokens!";
+    return;
+  }
+  if (bet < 1) {
+    resultSpan.textContent = "Bet must be at least 1 token.";
+    return;
+  }
+  users[currentUser].balance -= bet;
+  saveUsers(users);
+  updateBalanceDisplay();
+  currentBet = bet;
   const dropX = parseInt(dropXInput.value);
   ball = {
     x: dropX,
@@ -194,7 +217,12 @@ function animate() {
     requestAnimationFrame(animate);
   } else if (ball) {
     gameActive = false;
-    resultSpan.textContent = `Ball reached the goal! Winnings: ${parseInt(betInput.value) * 2}`;
+    // Win condition: ball reaches the bottom (always "win" for this demo)
+    let users = loadUsers();
+    users[currentUser].balance += currentBet * 2;
+    saveUsers(users);
+    updateBalanceDisplay();
+    resultSpan.textContent = `Ball reached the goal! Winnings: ${currentBet * 2}`;
   }
 }
 
