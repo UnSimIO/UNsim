@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ball Bet Game</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Ball Bet Game (Singleplayer)</h1>
+  <div id="ui">
+    <label>Bet Amount: <input type="number" id="bet-amount" value="10" min="1"></label>
+    <label>Drop X: <input type="range" id="drop-x" min="30" max="570" value="300"></label>
+    <button id="drop-btn">Drop Ball</button>
+    <span id="result"></span>
+  </div>
+  <canvas id="game-canvas" width="600" height="800"></canvas>
+  <script src="main.js"></script>
+</body>
+</html>
