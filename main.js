@@ -8,6 +8,11 @@ const startGameBtn = document.getElementById("start-game-btn");
 const mainMenu = document.getElementById("main-menu");
 const ui = document.getElementById("ui");
 const backBtn = document.getElementById("back-btn");
+const loginMenu = document.getElementById("login-menu");
+const usernameInput = document.getElementById("username-input");
+const loginBtn = document.getElementById("login-btn");
+
+let username = null;
 
 // Game constants
 const GRAVITY = 0.32;
@@ -21,7 +26,15 @@ const GOAL_LINE = 760;
 let ball = null;
 let gameActive = false;
 
+function showLogin() {
+  loginMenu.style.display = "";
+  mainMenu.style.display = "none";
+  ui.style.display = "none";
+  canvas.style.display = "none";
+}
+
 function showMenu() {
+  loginMenu.style.display = "none";
   mainMenu.style.display = "";
   ui.style.display = "none";
   canvas.style.display = "none";
@@ -47,7 +60,7 @@ function startGame() {
     color: getRandomColor()
   };
   gameActive = true;
-  resultSpan.textContent = "Ball dropped! Good luck!";
+  resultSpan.textContent = `Ball dropped! Good luck, ${username || "Player"}!`;
   animate();
 }
 
@@ -58,7 +71,6 @@ function animate() {
   if (ball && ball.y + BALL_RADIUS < GOAL_LINE) {
     requestAnimationFrame(animate);
   } else if (ball) {
-    // Ball reached the bottom
     gameActive = false;
     resultSpan.textContent = `Ball reached the goal! Winnings: ${parseInt(betInput.value) * 2}`;
   }
@@ -66,12 +78,10 @@ function animate() {
 
 function update() {
   if (!ball) return;
-  // Physics
   ball.vy += GRAVITY;
   ball.x += ball.vx;
   ball.y += ball.vy;
 
-  // Collision with canvas sides
   if (ball.x < BALL_RADIUS) {
     ball.x = BALL_RADIUS;
     ball.vx *= -0.7;
@@ -80,7 +90,6 @@ function update() {
     ball.vx *= -0.7;
   }
 
-  // Collision with obstacles
   for (const ob of OBSTACLES) {
     if (
       ball.y + BALL_RADIUS > ob.y &&
@@ -89,10 +98,8 @@ function update() {
       ball.x - BALL_RADIUS < ob.x + ob.w &&
       ball.vy > 0
     ) {
-      // Simple bounce
       ball.y = ob.y - BALL_RADIUS;
       ball.vy *= -0.65;
-      // Add a little horizontal randomness
       ball.vx += (Math.random() - 0.5) * 6;
     }
   }
@@ -101,7 +108,6 @@ function update() {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Draw goal line
   ctx.strokeStyle = "#0f0";
   ctx.lineWidth = 3;
   ctx.beginPath();
@@ -109,13 +115,11 @@ function draw() {
   ctx.lineTo(canvas.width, GOAL_LINE);
   ctx.stroke();
 
-  // Draw obstacles
   ctx.fillStyle = "#888";
   for (const ob of OBSTACLES) {
     ctx.fillRect(ob.x, ob.y, ob.w, ob.h);
   }
 
-  // Draw ball
   if (ball) {
     ctx.fillStyle = ball.color;
     ctx.beginPath();
@@ -127,12 +131,10 @@ function draw() {
   }
 }
 
-// Helpers
 function getRandomColor() {
   return `hsl(${Math.floor(Math.random() * 360)}, 80%, 50%)`;
 }
 
-// UI events
 dropBtn.onclick = () => {
   if (gameActive) {
     resultSpan.textContent = "Game in progress!";
@@ -150,5 +152,24 @@ startGameBtn.onclick = () => {
   draw();
 };
 
-// Start with menu
-showMenu();
+loginBtn.onclick = () => {
+  username = usernameInput.value.trim();
+  if (username.length < 3) {
+    alert("Username must be at least 3 characters.");
+    return;
+  }
+  localStorage.setItem("ballbet_username", username);
+  showMenu();
+};
+
+window.onload = () => {
+  username = localStorage.getItem("ballbet_username");
+  if (username) {
+    showMenu();
+  } else {
+    showLogin();
+  }
+};
+
+// Start with login or menu
+draw();
