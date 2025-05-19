@@ -3,25 +3,53 @@
 <head>
   <meta charset="UTF-8">
   <title>Ball Bet Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Ball Bet Game (Singleplayer)</h1>
-  <div id="login-menu">
-    <label>Username: <input type="text" id="username-input" /></label>
-    <button id="login-btn">Login</button>
+  <div id="app-container">
+    <!-- Main Menu -->
+    <div id="main-menu" class="card">
+      <h1>Ball Bet Game</h1>
+      <button class="btn" id="menu-login-btn">Login</button>
+      <button class="btn" id="menu-register-btn">Register</button>
+    </div>
+    <!-- Login -->
+    <div id="login-menu" class="card" style="display:none;">
+      <h2>Login</h2>
+      <input type="text" id="login-username" placeholder="Username">
+      <input type="password" id="login-password" placeholder="Password">
+      <button class="btn" id="login-btn">Login</button>
+      <button class="link-btn" id="to-register-btn">No account? Register</button>
+      <div class="error" id="login-error"></div>
+      <button class="back-btn" id="back-to-main-1">← Back</button>
+    </div>
+    <!-- Register -->
+    <div id="register-menu" class="card" style="display:none;">
+      <h2>Register</h2>
+      <input type="text" id="register-username" placeholder="Username">
+      <input type="password" id="register-password" placeholder="Password">
+      <button class="btn" id="register-btn">Register</button>
+      <button class="link-btn" id="to-login-btn">Already have an account? Login</button>
+      <div class="error" id="register-error"></div>
+      <button class="back-btn" id="back-to-main-2">← Back</button>
+    </div>
+    <!-- Game UI -->
+    <div id="game-ui" class="card" style="display:none;">
+      <div class="game-header">
+        <span id="greeting"></span>
+        <button class="logout-btn" id="logout-btn">Logout</button>
+      </div>
+      <div class="bet-controls">
+        <label>Bet: <input type="number" id="bet-amount" value="10" min="1"></label>
+        <label>Drop X: <input type="range" id="drop-x" min="30" max="570" value="300"></label>
+        <button class="btn" id="drop-btn">Drop Ball</button>
+      </div>
+      <span id="result"></span>
+      <button class="menu-btn" id="back-to-main-3">Back to Menu</button>
+      <canvas id="game-canvas" width="600" height="800"></canvas>
+    </div>
   </div>
-  <div id="main-menu" style="display:none;">
-    <button id="start-game-btn">Start Game</button>
-  </div>
-  <div id="ui" style="display:none;">
-    <label>Bet Amount: <input type="number" id="bet-amount" value="10" min="1"></label>
-    <label>Drop X: <input type="range" id="drop-x" min="30" max="570" value="300"></label>
-    <button id="drop-btn">Drop Ball</button>
-    <span id="result"></span>
-    <button id="back-btn" style="margin-left:2em;">Back to Menu</button>
-  </div>
-  <canvas id="game-canvas" width="600" height="800" style="display:none;"></canvas>
   <script src="main.js"></script>
 </body>
 </html>
